@@ -4,7 +4,6 @@ import Hero from "@/components/Hero";
 import MemberCarousel from "@/components/MemberCarousel";
 import ExpandableSection from "@/components/ExpandableSection";
 import StatsSection from "@/components/StatsSection";
-import Script from "next/script"; // Import untuk memuat widget Instagram
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -105,7 +104,7 @@ export default async function Home() {
         )}
       </section>
 
-      {/* --- SECTION: CONTACT & SOCIALS --- */}
+      {/* --- SECTION: CONTACT & MAPS --- */}
       <section id="contact" className="py-16 md:py-40 bg-white px-5 border-t border-gray-100">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-32 items-center">
           
@@ -150,30 +149,22 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* REVISI: LIGHTWIDGET INSTAGRAM FEED */}
-          <div className="order-1 lg:order-2 relative">
-            {/* Muat Script LightWidget secara asinkron */}
-            <Script 
-              src="https://cdn.lightwidget.com/widgets/lightwidget.js" 
-              strategy="afterInteractive" 
-            />
+          {/* GOOGLE MAPS SECTION */}
+          <div className="order-1 lg:order-2 h-[450px] bg-gray-50 rounded-[3rem] overflow-hidden border border-gray-100 shadow-2xl shadow-[#174143]/5 relative group">
+            <iframe 
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15865.918991726053!2d108.3300!3d-6.3200!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6eb94910!2sPabean%20Udik%2C%20Pasekan%2C%20Indramayu%20Regency%2C%20West%20Java!5e0!3m2!1sen!2sid!4v1700000000000!5m2!1sen!2sid" 
+              width="100%" 
+              height="100%" 
+              style={{ border: 0 }} 
+              allowFullScreen 
+              loading="lazy" 
+              referrerPolicy="no-referrer-when-downgrade"
+              className="grayscale contrast-125 opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-1000"
+            ></iframe>
             
-            <div className="h-[500px] md:h-[600px] bg-gray-50 rounded-[3rem] overflow-hidden border border-gray-100 shadow-2xl shadow-[#174143]/10 relative group">
-              {/* Label Kecil */}
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full border border-gray-100">
-                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#174143]">
-                  Live Instagram Feed
-                </p>
-              </div>
-
-              {/* Iframe dari LightWidget */}
-              <iframe 
-                src="//lightwidget.com/widgets/d6f97b3bcb0b5f93b835f77a835894e2.html" 
-                className="lightwidget-widget w-full h-full border-0 overflow-hidden"
-              ></iframe>
-
-              {/* Frame Putih (Optional: Agar tetap senada dengan UI web) */}
-              <div className="absolute inset-0 pointer-events-none border-[5px] border-white rounded-[1rem] z-20" />
+            {/* Overlay Label */}
+            <div className="absolute bottom-6 left-6 z-10 bg-white/90 backdrop-blur-md px-5 py-3 rounded-2xl border border-gray-100 pointer-events-none group-hover:opacity-0 transition-opacity duration-500">
+               <p className="text-[10px] font-black uppercase tracking-widest text-[#174143]">Pabean Udik, Indramayu</p>
             </div>
           </div>
         </div>
