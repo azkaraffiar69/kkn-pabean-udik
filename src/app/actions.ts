@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/db";
-import { members, kegiatan, gallery } from "@/db/schema";
+import { members, kegiatan, gallery, kknConfig } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -33,6 +33,16 @@ export async function getGallery() {
   } catch (error) {
     console.error("Gagal mengambil data galeri:", error);
     return [];
+  }
+}
+
+export async function getConfig() {
+  try {
+    const data = await db.select().from(kknConfig).limit(1);
+    return data[0] || null;
+  } catch (error) {
+    console.error("Gagal mengambil config:", error);
+    return null;
   }
 }
 
@@ -87,6 +97,21 @@ export async function updateKegiatan(id: number, title: string, description: str
   } catch (e) { return { success: false }; }
 }
 
+// Tambahan: Update Progres Per Proker
+export async function updateProkerProgress(id: number, progress: number) {
+  try {
+    await db.update(kegiatan)
+      .set({ progress })
+      .where(eq(kegiatan.id, id));
+    
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error) {
+    return { success: false };
+  }
+}
+
 export async function deleteKegiatan(id: number) {
   try {
     await db.delete(kegiatan).where(eq(kegiatan.id, id));
@@ -99,13 +124,7 @@ export async function deleteKegiatan(id: number) {
 // --- GALLERY ---
 export async function createGallery(imageUrl: string, title: string, caption: string) {
   try {
-    // Memasukkan data ke kolom title dan caption secara terpisah
-    await db.insert(gallery).values({ 
-      imageUrl, 
-      title, 
-      caption 
-    });
-    
+    await db.insert(gallery).values({ imageUrl, title, caption });
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
@@ -115,19 +134,9 @@ export async function createGallery(imageUrl: string, title: string, caption: st
   }
 }
 
-/**
- * Memperbarui data galeri berdasarkan ID.
- * Perubahan: Sekarang bisa memperbarui Judul dan Caption sekaligus.
- */
 export async function updateGallery(id: number, title: string, caption: string) {
   try {
-    await db.update(gallery)
-      .set({ 
-        title, 
-        caption 
-      })
-      .where(eq(gallery.id, id));
-    
+    await db.update(gallery).set({ title, caption }).where(eq(gallery.id, id));
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
@@ -137,13 +146,9 @@ export async function updateGallery(id: number, title: string, caption: string) 
   }
 }
 
-/**
- * Menghapus data galeri berdasarkan ID.
- */
 export async function deleteGallery(id: number) {
   try {
     await db.delete(gallery).where(eq(gallery.id, id));
-    
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
@@ -154,12 +159,33 @@ export async function deleteGallery(id: number) {
 }
 
 /* =============================================================
-   SECTION 3: AUTHENTICATION
+   SECTION 3: CONFIG & SETTINGS
    ============================================================= */
 
-/**
- * Validasi login admin menggunakan Environment Variable
- */
+// Tambahan: Fungsi untuk update Countdown dan Progres Global
+export async function updateConfig(formData: FormData) {
+  const startDate = new Date(formData.get("startDate") as string);
+  const endDate = new Date(formData.get("endDate") as string);
+  const totalProgress = parseInt(formData.get("totalProgress") as string);
+
+  try {
+    await db.update(kknConfig)
+      .set({ startDate, endDate, totalProgress })
+      .where(eq(kknConfig.id, 1));
+    
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (error) {
+    console.error("Update error:", error);
+    return { success: false, error: "Gagal update database" };
+  }
+}
+
+/* =============================================================
+   SECTION 4: AUTHENTICATION
+   ============================================================= */
+
 export async function login(password: string) {
   const adminPassword = process.env.ADMIN_PASSWORD; 
 

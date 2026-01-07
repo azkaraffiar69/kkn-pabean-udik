@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
 
 export const members = pgTable("members", {
   id: serial("id").primaryKey(),
@@ -13,6 +13,7 @@ export const kegiatan = pgTable("kegiatan", {
   title: text("title").notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
+  progress: integer("progress").default(0), // PASTIKAN BARIS INI ADA
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -21,5 +22,14 @@ export const gallery = pgTable("gallery", {
   title: text("title").notNull(),     // Kolom baru untuk Judul
   caption: text("caption"),           // Kolom untuk Deskripsi/Caption
   imageUrl: text("image_url").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const kknConfig = pgTable("kkn_config", {
+  id: serial("id").primaryKey(),
+  startDate: timestamp("start_date").notNull(), 
+  endDate: timestamp("end_date").notNull(),     
+  totalProgress: integer("total_progress").default(0), // Sekarang 'integer' sudah terdefinisi
+  progress: integer("progress").default(0), 
   createdAt: timestamp("created_at").defaultNow(),
 });

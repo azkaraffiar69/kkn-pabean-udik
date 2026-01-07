@@ -85,24 +85,26 @@ export default function MemberCarousel({ data = [] }: { data: MemberProps[] }) {
             </div>
 
             {/* TEXT SECTION: Nama, Jurusan, Jabatan */}
+
             <motion.div 
-              animate={{ 
+            animate={{ 
                 x: activeId === member.id ? 12 : 0,
                 opacity: activeId !== null && activeId !== member.id ? 0.3 : 1
-              }}
-              className="space-y-2.5"
+            }}
+            className="space-y-2"
             >
-              <h3 className="text-2xl md:text-3xl font-black text-[#174143] uppercase italic leading-[0.85] tracking-tighter">
-                {member.name.split(' ').map((word, i) => (
-                  <span key={i} className="block">{word}</span>
-                ))}
-              </h3>
-              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">
+            {/* Nama: Sekarang menggunakan wrapping normal, maksimal 2 baris */}
+            <h3 className="text-2xl md:text-3xl font-black text-[#174143] uppercase italic leading-[1] tracking-tighter line-clamp-2 min-h-[3.5rem] md:min-h-[4rem]">
+                {member.name}
+            </h3>
+            
+            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 truncate">
                 {member.major}
-              </p>
-              <p className="text-sm font-serif italic text-[#174143]/40">
+            </p>
+            
+            <p className="text-sm font-serif italic text-[#174143]/40 truncate">
                 {member.role}
-              </p>
+            </p>
             </motion.div>
 
             <motion.div 
