@@ -8,9 +8,10 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function Home() {
-  let allMembers = [];
-  let allProjects = []; 
-  let allPhotos = [];
+  // Menambahkan tipe data explicit : any[] agar lolos build TypeScript
+  let allMembers: any[] = [];
+  let allProjects: any[] = []; 
+  let allPhotos: any[] = [];
   let hasError = false;
 
   try {
@@ -21,9 +22,9 @@ export default async function Home() {
       getGallery()
     ]);
     
-    allMembers = membersData;
-    allProjects = kegiatanData; 
-    allPhotos = galleryData;
+    allMembers = membersData || [];
+    allProjects = kegiatanData || []; 
+    allPhotos = galleryData || [];
   } catch (error) {
     console.error("Database connection failed:", error);
     hasError = true;
@@ -88,7 +89,7 @@ export default async function Home() {
                       <div className="h-[1px] w-8 bg-[#174143]/20" />
                       <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#174143]/40">Program Unggulan</span>
                     </div>
-                    <h3 className="text-4xl font-black text-[#174143] mb-6 tracking-tight group-hover:translate-x-2 transition-transform duration-500">
+                    <h3 className="text-4xl font-black text-[#174143] mb-6 tracking-tight group-hover:translate-x-2 transition-transform duration-500 uppercase italic">
                       {project.title}
                     </h3>
                     <p className="text-gray-500 leading-relaxed text-sm lg:text-base opacity-80 group-hover:opacity-100 transition-opacity">
