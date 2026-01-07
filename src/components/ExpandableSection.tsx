@@ -1,144 +1,107 @@
-import { getMembers, getKegiatan, getGallery } from "@/app/actions";
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import MemberCarousel from "@/components/MemberCarousel";
-import ExpandableSection from "@/components/ExpandableSection";
+"use client";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export default async function Home() {
-  let allMembers: any[] = [];
-  let allProjects: any[] = [];
-  let allPhotos: any[] = [];
-  let hasError = false;
+// 1. Definisi Tipe Data untuk Props
+interface ItemData {
+  id: number;
+  title?: string;
+  description?: string;
+  image_url?: string;
+  imageUrl?: string;
+}
 
-  try {
-    const [membersData, kegiatanData, galleryData] = await Promise.all([
-      getMembers(),
-      getKegiatan(),
-      getGallery()
-    ]);
-    allMembers = membersData || [];
-    allProjects = kegiatanData || [];
-    allPhotos = galleryData || [];
-  } catch (error) {
-    console.error("Database connection failed:", error);
-    hasError = true;
-  }
+interface ExpandableSectionProps {
+  items: ItemData[];
+  type: "programs" | "gallery";
+}
 
-  // REVISI: Fungsi getImageUrl dihapus dari sini karena sudah dipindahkan 
-  // langsung ke dalam Client Component (ExpandableSection) untuk menghindari Runtime Error.
+export default function ExpandableSection({ items, type }: ExpandableSectionProps) {
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  // 2. Logika Internal untuk mengambil URL Image dari Supabase
+  const getImageUrl = (path: string | undefined) => {
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const BUCKET_NAME = "kkn-pabean"; 
+    if (!path) return "/placeholder.jpg";
+    if (path.startsWith("http")) return path;
+    return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${path}`;
+  };
+
+  if (!items || items.length === 0) return null;
 
   return (
-    <main className="min-h-screen bg-white selection:bg-[#174143] selection:text-white overflow-x-hidden">
-      <Navbar />
-      <Hero />
-
-      {/* --- SECTION: PERSONNEL (TIM KKN) --- */}
-      <section id="team" className="max-w-7xl mx-auto px-5 md:px-6 py-16 md:py-40">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 md:mb-24 gap-6">
-          <div className="max-w-xl">
-            <h2 className="text-[2.5rem] md:text-6xl font-black tracking-tighter text-[#174143] leading-[1.1] mb-6">
-              Meet <span className="font-serif italic font-light block md:inline text-[3rem] md:text-7xl">The Team.</span>
-            </h2>
-            <p className="text-gray-500 text-sm md:text-base border-l-2 border-[#174143]/10 pl-4 md:pl-6 max-w-md leading-relaxed">
-              Sinergi mahasiswa Universitas Padjadjaran lintas disiplin ilmu untuk pemberdayaan masyarakat Desa Pabean Udik.
-            </p>
-          </div>
-        </div>
-        {allMembers.length === 0 ? (
-          <p className="text-center italic text-gray-300 py-10">Roster is empty...</p>
-        ) : (
-          <MemberCarousel data={allMembers} />
-        )}
-      </section>
-
-      {/* --- SECTION: PROGRAM KERJA --- */}
-      <section id="programs" className="bg-[#F9F9F9] py-16 md:py-40 px-5 md:px-6 rounded-[2.5rem] md:rounded-[5rem] mx-2 md:mx-10">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-12 md:mb-24 text-center md:text-left">
-            <h2 className="text-[2.5rem] md:text-6xl font-black tracking-tighter text-[#174143] leading-[1.1] mb-4">
-              Work <span className="font-serif italic font-light block md:inline text-[3rem] md:text-7xl">Programs.</span>
-            </h2>
-            <p className="text-gray-400 text-sm md:text-lg"> Edukasi Peningkatan Nilai Tambah Hasil Pertanian, Laut, serta kekayaan budaya.</p>
-          </div>
-          
-          {allProjects.length === 0 ? (
-            <div className="py-20 text-center bg-white rounded-[2rem] border border-gray-100 shadow-sm">
-              <p className="text-gray-400 italic text-sm">Belum ada program kerja.</p>
+    <div className="space-y-4">
+      {items.map((item) => (
+        <div 
+          key={item.id}
+          className="border-b border-[#174143]/5 overflow-hidden"
+        >
+          <button
+            onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
+            className="w-full py-6 flex items-center justify-between text-left group"
+          >
+            <div className="flex items-baseline gap-4">
+              <span className="text-[10px] font-black text-[#174143]/20 uppercase italic">
+                {String(item.id).padStart(2, '0')}
+              </span>
+              <h3 className="text-xl md:text-2xl font-black text-[#174143] uppercase italic tracking-tighter group-hover:translate-x-2 transition-transform duration-300">
+                {item.title || "Dokumentasi Kegiatan"}
+              </h3>
             </div>
-          ) : (
-            /* REVISI: Prop getImageUrl dihapus karena sudah di-handle internal oleh ExpandableSection */
-            <ExpandableSection items={allProjects} type="programs" />
-          )}
-        </div>
-      </section>
+            
+            <div className={`w-8 h-8 rounded-full border border-[#174143]/10 flex items-center justify-center transition-all duration-500 ${expandedId === item.id ? 'rotate-180 bg-[#174143] text-white' : ''}`}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 4L6 9L11 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </button>
 
-      {/* --- SECTION: GALLERY --- */}
-      <section id="gallery" className="py-16 md:py-40 max-w-7xl mx-auto px-5">
-        <div className="mb-10 md:mb-24 flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h2 className="text-[2.5rem] md:text-5xl font-black tracking-tighter text-[#174143]">Gallery.</h2>
-            <p className="text-gray-400 mt-2 text-sm md:text-lg">Visualisasi dedikasi dan kebersamaan.</p>
-          </div>
-          <p className="text-[#174143]/10 font-black text-6xl hidden sm:block select-none italic">2026</p>
-        </div>
-        
-        {allPhotos.length === 0 ? (
-          <p className="text-center py-16 italic text-gray-300">Dokumentasi belum tersedia.</p>
-        ) : (
-          /* REVISI: Prop getImageUrl dihapus */
-          <ExpandableSection items={allPhotos} type="gallery" />
-        )}
-      </section>
+          <AnimatePresence>
+            {expandedId === item.id && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+              >
+                <div className="pb-10 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                  {/* Foto Program/Gallery */}
+                  <div className="relative aspect-video md:aspect-square rounded-[2rem] overflow-hidden bg-gray-100">
+                    <img 
+                      src={getImageUrl(item.image_url || item.imageUrl)} 
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-      {/* --- SECTION: CONTACT --- */}
-      <section id="contact" className="py-16 md:py-40 bg-white px-5 border-t border-gray-100">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-32 items-center">
-          <div className="order-2 lg:order-1">
-            <h2 className="text-[2.5rem] md:text-5xl font-black tracking-tighter text-[#174143] mb-8 leading-none uppercase italic">
-              Get in <br /><span className="font-serif font-light lowercase opacity-40">Touch.</span>
-            </h2>
-            <div className="space-y-6 md:space-y-12">
-              <div className="flex gap-5 md:gap-8 items-start">
-                <div className="w-10 h-10 md:w-14 md:h-14 bg-[#174143] text-white rounded-xl flex items-center justify-center flex-shrink-0 font-black italic shadow-lg">L</div>
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-300 mb-1">Lokasi Posko</p>
-                  <p className="text-[#174143] font-bold text-base md:text-xl">Balai Desa Pabean Udik, Indramayu</p>
+                  {/* Deskripsi (Hanya muncul jika tipe 'programs') */}
+                  <div className="space-y-4">
+                    {type === "programs" && (
+                      <>
+                        <p className="text-[#174143]/60 leading-relaxed text-sm md:text-base">
+                          {item.description || "Tidak ada deskripsi tersedia untuk program ini."}
+                        </p>
+                        <div className="pt-4 flex gap-2">
+                           <span className="px-4 py-2 rounded-full border border-[#174143]/10 text-[10px] font-black uppercase tracking-widest text-[#174143]">
+                             Pabean Udik '26
+                           </span>
+                        </div>
+                      </>
+                    )}
+                    {type === "gallery" && (
+                       <p className="text-[#174143]/40 italic text-sm">
+                         Diabadikan pada momen kegiatan pengabdian masyarakat.
+                       </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="order-1 lg:order-2 h-[300px] md:h-[450px] bg-gray-50 rounded-[3rem] overflow-hidden border border-gray-100 shadow-inner">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15865.8672957436!2d108.3298687!3d-6.3330687!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6ec1d6a57f13b1%3A0x8e83b4b5c777e436!2sPabeanudik%2C%20Kec.%20Indramayu%2C%20Kabupaten%20Indramayu%2C%20Jawa%20Barat!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid" 
-              width="100%" 
-              height="100%" 
-              style={{ border: 0 }} 
-              allowFullScreen 
-              loading="lazy" 
-              className="grayscale contrast-125 opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-1000"
-            ></iframe>
-          </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </section>
-
-      <footer className="py-16 md:py-32 text-center border-t border-gray-50 bg-white">
-        <div className="font-black text-2xl md:text-4xl tracking-tighter text-[#174143] uppercase mb-6">
-          PABEAN <span className="opacity-100 italic font-serif font-light lowercase">udik '26</span>
-        </div>
-        <p className="text-[8px] md:text-[10px] font-bold tracking-[0.5em] uppercase text-[#174143]/20 leading-loose">
-          Universitas Padjadjaran • Kuliah Kerja Nyata
-        </p>
-      </footer>
-      
-      {hasError && (
-        <div className="fixed bottom-6 right-6 bg-red-600 text-white px-6 py-3 rounded-full text-[9px] font-black uppercase z-[300] animate-bounce shadow-2xl">
-          System Error
-        </div>
-      )}
-    </main>
+      ))}
+    </div>
   );
 }
