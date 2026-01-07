@@ -94,3 +94,14 @@ export async function deleteGallery(id: number) {
   revalidatePath("/");
   revalidatePath("/admin");
 }
+
+export async function login(password: string) {
+  // Mengambil password dari environment variable
+  const adminPassword = process.env.ADMIN_PASSWORD; 
+
+  if (password === adminPassword) {
+    return { success: true };
+  } else {
+    return { success: false, message: "Password salah!" };
+  }
+}
