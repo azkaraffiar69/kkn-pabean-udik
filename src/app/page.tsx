@@ -8,9 +8,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function Home() {
-  // Menambahkan tipe data explicit : any[] agar lolos build TypeScript
+  // Memberikan tipe data eksplisit : any[] untuk mengatasi error 'implicit any[]'
   let allMembers: any[] = [];
-  let allProjects: any[] = []; 
+  let allProjects: any[] = [];
   let allPhotos: any[] = [];
   let hasError = false;
 
@@ -23,7 +23,7 @@ export default async function Home() {
     ]);
     
     allMembers = membersData || [];
-    allProjects = kegiatanData || []; 
+    allProjects = kegiatanData || [];
     allPhotos = galleryData || [];
   } catch (error) {
     console.error("Database connection failed:", error);
@@ -162,6 +162,7 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* FOOTER */}
       <footer className="py-32 text-center border-t border-gray-50 bg-white">
         <div className="max-w-6xl mx-auto px-6">
           <div className="font-black text-4xl tracking-tighter text-[#174143] uppercase mb-12">
