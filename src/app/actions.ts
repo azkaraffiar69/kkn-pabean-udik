@@ -97,31 +97,60 @@ export async function deleteKegiatan(id: number) {
 }
 
 // --- GALLERY ---
-export async function createGallery(imageUrl: string, caption: string) {
+export async function createGallery(imageUrl: string, title: string, caption: string) {
   try {
-    await db.insert(gallery).values({ imageUrl, caption });
+    // Memasukkan data ke kolom title dan caption secara terpisah
+    await db.insert(gallery).values({ 
+      imageUrl, 
+      title, 
+      caption 
+    });
+    
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
-  } catch (e) { return { success: false }; }
+  } catch (e) { 
+    console.error("Error creating gallery:", e);
+    return { success: false }; 
+  }
 }
 
-export async function updateGallery(id: number, caption: string) {
+/**
+ * Memperbarui data galeri berdasarkan ID.
+ * Perubahan: Sekarang bisa memperbarui Judul dan Caption sekaligus.
+ */
+export async function updateGallery(id: number, title: string, caption: string) {
   try {
-    await db.update(gallery).set({ caption }).where(eq(gallery.id, id));
+    await db.update(gallery)
+      .set({ 
+        title, 
+        caption 
+      })
+      .where(eq(gallery.id, id));
+    
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
-  } catch (e) { return { success: false }; }
+  } catch (e) { 
+    console.error("Error updating gallery:", e);
+    return { success: false }; 
+  }
 }
 
+/**
+ * Menghapus data galeri berdasarkan ID.
+ */
 export async function deleteGallery(id: number) {
   try {
     await db.delete(gallery).where(eq(gallery.id, id));
+    
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
-  } catch (e) { return { success: false }; }
+  } catch (e) { 
+    console.error("Error deleting gallery:", e);
+    return { success: false }; 
+  }
 }
 
 /* =============================================================

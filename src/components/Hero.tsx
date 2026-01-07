@@ -54,7 +54,7 @@ export default function Hero() {
           className="text-7xl md:text-[10rem] font-black text-white tracking-tighter leading-[0.85] drop-shadow-2xl"
         >
           Pabean <br /> 
-          <span className="font-serif italic font-light opacity-100 lowercase">udik.</span>
+          <span className="font-serif italic font-light opacity-100 leader-none">Udik.</span>
         </motion.h1>
 
         <motion.div 

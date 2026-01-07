@@ -18,7 +18,8 @@ export const kegiatan = pgTable("kegiatan", {
 
 export const gallery = pgTable("gallery", {
   id: serial("id").primaryKey(),
+  title: text("title").notNull(),     // Kolom baru untuk Judul
+  caption: text("caption"),           // Kolom untuk Deskripsi/Caption
   imageUrl: text("image_url").notNull(),
-  caption: text("caption"),
   createdAt: timestamp("created_at").defaultNow(),
 });
