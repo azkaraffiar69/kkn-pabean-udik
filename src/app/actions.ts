@@ -6,12 +6,9 @@ import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 /* =============================================================
-   SECTION 1: FUNGSI READ (Ambil Data)
+   SECTION 1: FUNGSI AMBIL DATA (READ)
    ============================================================= */
 
-/**
- * Mengambil semua data anggota tim KKN
- */
 export async function getMembers() {
   try {
     return await db.select().from(members);
@@ -21,9 +18,6 @@ export async function getMembers() {
   }
 }
 
-/**
- * Mengambil data program kerja/kegiatan berdasarkan tanggal terbaru
- */
 export async function getKegiatan() {
   try {
     return await db.select().from(kegiatan).orderBy(desc(kegiatan.createdAt));
@@ -33,9 +27,6 @@ export async function getKegiatan() {
   }
 }
 
-/**
- * Mengambil data foto galeri berdasarkan tanggal terbaru
- */
 export async function getGallery() {
   try {
     return await db.select().from(gallery).orderBy(desc(gallery.createdAt));
@@ -46,73 +37,91 @@ export async function getGallery() {
 }
 
 /* =============================================================
-   SECTION 2: FUNGSI WRITE & DELETE (Kelola Data)
+   SECTION 2: FUNGSI KELOLA DATA (CRUD)
    ============================================================= */
 
-// --- FUNGSI KELOLA MEMBER ---
+// --- MEMBER ---
 export async function createMember(name: string, role: string, major: string, imageUrl: string) {
-  await db.insert(members).values({ name, role, major, imageUrl });
-  revalidatePath("/");
-  revalidatePath("/admin");
-  return { success: true };
+  try {
+    await db.insert(members).values({ name, role, major, imageUrl });
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (e) { return { success: false }; }
 }
 
 export async function updateMember(id: number, name: string, role: string, major: string) {
-  await db.update(members).set({ name, role, major }).where(eq(members.id, id));
-  revalidatePath("/");
-  revalidatePath("/admin");
-  return { success: true };
+  try {
+    await db.update(members).set({ name, role, major }).where(eq(members.id, id));
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (e) { return { success: false }; }
 }
 
 export async function deleteMember(id: number) {
-  await db.delete(members).where(eq(members.id, id));
-  revalidatePath("/");
-  revalidatePath("/admin");
-  return { success: true };
+  try {
+    await db.delete(members).where(eq(members.id, id));
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (e) { return { success: false }; }
 }
 
-// --- FUNGSI KELOLA KEGIATAN ---
+// --- KEGIATAN ---
 export async function createKegiatan(title: string, description: string, imageUrl: string) {
-  await db.insert(kegiatan).values({ title, description, imageUrl });
-  revalidatePath("/");
-  revalidatePath("/admin");
-  return { success: true };
+  try {
+    await db.insert(kegiatan).values({ title, description, imageUrl });
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (e) { return { success: false }; }
 }
 
 export async function updateKegiatan(id: number, title: string, description: string) {
-  await db.update(kegiatan).set({ title, description }).where(eq(kegiatan.id, id));
-  revalidatePath("/");
-  revalidatePath("/admin");
-  return { success: true };
+  try {
+    await db.update(kegiatan).set({ title, description }).where(eq(kegiatan.id, id));
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (e) { return { success: false }; }
 }
 
 export async function deleteKegiatan(id: number) {
-  await db.delete(kegiatan).where(eq(kegiatan.id, id));
-  revalidatePath("/");
-  revalidatePath("/admin");
-  return { success: true };
+  try {
+    await db.delete(kegiatan).where(eq(kegiatan.id, id));
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (e) { return { success: false }; }
 }
 
-// --- FUNGSI KELOLA GALLERY ---
+// --- GALLERY ---
 export async function createGallery(imageUrl: string, caption: string) {
-  await db.insert(gallery).values({ imageUrl, caption });
-  revalidatePath("/");
-  revalidatePath("/admin");
-  return { success: true };
+  try {
+    await db.insert(gallery).values({ imageUrl, caption });
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (e) { return { success: false }; }
 }
 
 export async function updateGallery(id: number, caption: string) {
-  await db.update(gallery).set({ caption }).where(eq(gallery.id, id));
-  revalidatePath("/");
-  revalidatePath("/admin");
-  return { success: true };
+  try {
+    await db.update(gallery).set({ caption }).where(eq(gallery.id, id));
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (e) { return { success: false }; }
 }
 
 export async function deleteGallery(id: number) {
-  await db.delete(gallery).where(eq(gallery.id, id));
-  revalidatePath("/");
-  revalidatePath("/admin");
-  return { success: true };
+  try {
+    await db.delete(gallery).where(eq(gallery.id, id));
+    revalidatePath("/");
+    revalidatePath("/admin");
+    return { success: true };
+  } catch (e) { return { success: false }; }
 }
 
 /* =============================================================
@@ -124,6 +133,11 @@ export async function deleteGallery(id: number) {
  */
 export async function login(password: string) {
   const adminPassword = process.env.ADMIN_PASSWORD; 
+
+  if (!adminPassword) {
+    console.error("ADMIN_PASSWORD tidak ditemukan di lingkungan server.");
+    return { success: false, message: "Server configuration error." };
+  }
 
   if (password === adminPassword) {
     return { success: true };

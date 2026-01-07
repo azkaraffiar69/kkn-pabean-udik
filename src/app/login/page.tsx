@@ -1,18 +1,42 @@
 "use client";
-import { login } from "../actions";
+
+import { login } from "@/app/actions"; // Menggunakan alias @ untuk memastikan Turbopack menemukan module
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   async function handleSubmit(formData: FormData) {
-    const result = await login(formData);
-    if (result?.error) setError(result.error);
+    setError("");
+    setLoading(true);
+
+    // Mengambil password dari input form
+    const password = formData.get("password") as string;
+
+    try {
+      // Memanggil fungsi login di actions.ts
+      const result = await login(password);
+
+      if (result.success) {
+        // Jika berhasil, arahkan ke halaman admin
+        router.push("/admin");
+      } else {
+        // Jika gagal, tampilkan pesan error dari server
+        setError(result.message || "Akses Ditolak");
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan pada sistem.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <main className="min-h-screen bg-[#FCFCFC] flex items-center justify-center px-6">
+    <main className="min-h-screen bg-[#FCFCFC] flex items-center justify-center px-6 selection:bg-[#174143] selection:text-white">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -42,13 +66,22 @@ export default function LoginPage() {
               />
             </div>
 
-            {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center tracking-widest">{error}</p>}
+            {error && (
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-red-500 text-[10px] font-bold uppercase text-center tracking-widest"
+              >
+                {error}
+              </motion.p>
+            )}
 
             <button 
               type="submit"
-              className="w-full bg-[#174143] text-white p-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-[10px] hover:brightness-125 transition-all shadow-lg shadow-[#174143]/10"
+              disabled={loading}
+              className="w-full bg-[#174143] text-white p-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-[10px] hover:brightness-125 transition-all shadow-lg shadow-[#174143]/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Authorize Access
+              {loading ? "Verifying..." : "Authorize Access"}
             </button>
           </form>
         </div>
