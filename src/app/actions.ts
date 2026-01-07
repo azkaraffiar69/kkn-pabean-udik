@@ -125,12 +125,6 @@ export async function deleteGallery(id: number) {
 export async function login(password: string) {
   const adminPassword = process.env.ADMIN_PASSWORD; 
 
-  // Keamanan tambahan: Cek jika env belum diatur
-  if (!adminPassword) {
-    console.error("ADMIN_PASSWORD tidak ditemukan di Environment Variables");
-    return { success: false, message: "Kesalahan konfigurasi server." };
-  }
-
   if (password === adminPassword) {
     return { success: true };
   } else {

@@ -2,6 +2,7 @@ import { getMembers, getKegiatan, getGallery } from "@/app/actions";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import MemberCarousel from "@/components/MemberCarousel";
+import login from "@/app/actions"
 
 // Konfigurasi Server: Selalu ambil data terbaru
 export const dynamic = "force-dynamic";
