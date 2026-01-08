@@ -2,16 +2,19 @@
 
 import { db } from "@/db";
 import { members, kegiatan, gallery, kknConfig } from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, asc } from "drizzle-orm"; // Ditambahkan asc untuk pengurutan
 import { revalidatePath } from "next/cache";
 
 /* =============================================================
    SECTION 1: FUNGSI AMBIL DATA (READ)
    ============================================================= */
 
+/**
+ * Mengambil data anggota berdasarkan urutan terkecil ke terbesar.
+ */
 export async function getMembers() {
   try {
-    return await db.select().from(members);
+    return await db.select().from(members).orderBy(asc(members.orderIndex)); 
   } catch (error) {
     console.error("Gagal mengambil data member:", error);
     return [];
@@ -51,22 +54,36 @@ export async function getConfig() {
    ============================================================= */
 
 // --- MEMBER ---
-export async function createMember(name: string, role: string, major: string, imageUrl: string) {
+/**
+ * Membuat anggota baru dengan menyertakan index urutan.
+ */
+export async function createMember(name: string, role: string, major: string, imageUrl: string, orderIndex: number) {
   try {
-    await db.insert(members).values({ name, role, major, imageUrl });
+    await db.insert(members).values({ name, role, major, imageUrl, orderIndex });
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
-  } catch (e) { return { success: false }; }
+  } catch (e) { 
+    console.error("Error creating member:", e);
+    return { success: false }; 
+  }
 }
 
-export async function updateMember(id: number, name: string, role: string, major: string) {
+/**
+ * Memperbarui data anggota termasuk urutan tampilannya.
+ */
+export async function updateMember(id: number, name: string, role: string, major: string, orderIndex: number) {
   try {
-    await db.update(members).set({ name, role, major }).where(eq(members.id, id));
+    await db.update(members)
+      .set({ name, role, major, orderIndex })
+      .where(eq(members.id, id));
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
-  } catch (e) { return { success: false }; }
+  } catch (e) { 
+    console.error("Error updating member:", e);
+    return { success: false }; 
+  }
 }
 
 export async function deleteMember(id: number) {
@@ -97,7 +114,6 @@ export async function updateKegiatan(id: number, title: string, description: str
   } catch (e) { return { success: false }; }
 }
 
-// Tambahan: Update Progres Per Proker
 export async function updateProkerProgress(id: number, progress: number) {
   try {
     await db.update(kegiatan)
@@ -137,6 +153,7 @@ export async function createGallery(imageUrl: string, title: string, caption: st
 export async function updateGallery(id: number, title: string, caption: string) {
   try {
     await db.update(gallery).set({ title, caption }).where(eq(gallery.id, id));
+    
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
@@ -149,6 +166,7 @@ export async function updateGallery(id: number, title: string, caption: string) 
 export async function deleteGallery(id: number) {
   try {
     await db.delete(gallery).where(eq(gallery.id, id));
+    
     revalidatePath("/");
     revalidatePath("/admin");
     return { success: true };
@@ -162,7 +180,6 @@ export async function deleteGallery(id: number) {
    SECTION 3: CONFIG & SETTINGS
    ============================================================= */
 
-// Tambahan: Fungsi untuk update Countdown dan Progres Global
 export async function updateConfig(formData: FormData) {
   const startDate = new Date(formData.get("startDate") as string);
   const endDate = new Date(formData.get("endDate") as string);

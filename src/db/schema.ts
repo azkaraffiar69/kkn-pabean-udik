@@ -6,6 +6,8 @@ export const members = pgTable("members", {
   role: text("role").notNull(),
   major: text("major").notNull(), // Pastikan ini ada
   imageUrl: text("image_url"),
+  orderIndex: integer("order_index").default(0), // Tambahkan kolom ini
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const kegiatan = pgTable("kegiatan", {

@@ -10,13 +10,14 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<"member" | "kegiatan" | "galeri" | "progress">("member");
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [savingId, setSavingId] = useState<number | null>(null); // State buat loading per baris
+  const [savingId, setSavingId] = useState<number | null>(null);
 
   // Form States Umum
   const [title, setTitle] = useState(""); 
   const [description, setDescription] = useState("");
   const [major, setMajor] = useState(""); 
   const [progress, setProgress] = useState(0); 
+  const [orderIndex, setOrderIndex] = useState(0); // State baru untuk urutan member
   const [file, setFile] = useState<File | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
 
@@ -52,6 +53,7 @@ export default function AdminPage() {
     setDescription("");
     setMajor("");
     setProgress(0);
+    setOrderIndex(0); // Reset orderIndex
     setFile(null);
   };
 
@@ -81,14 +83,14 @@ export default function AdminPage() {
       }
 
       if (editId) {
-        if (activeTab === "member") await actions.updateMember(editId, title, description, major);
+        if (activeTab === "member") await actions.updateMember(editId, title, description, major, orderIndex);
         if (activeTab === "kegiatan") {
             await actions.updateKegiatan(editId, title, description);
             await actions.updateProkerProgress(editId, progress);
         }
         if (activeTab === "galeri") await actions.updateGallery(editId, title, description); 
       } else {
-        if (activeTab === "member") await actions.createMember(title, description, major, url);
+        if (activeTab === "member") await actions.createMember(title, description, major, url, orderIndex);
         if (activeTab === "kegiatan") await actions.createKegiatan(title, description, url);
         if (activeTab === "galeri") await actions.createGallery(url, title, description);
       }
@@ -103,17 +105,11 @@ export default function AdminPage() {
     }
   };
 
-  // Fungsi khusus untuk simpan progress per proker
   const handleSaveProkerProgress = async (id: number, val: number) => {
     setSavingId(id);
     const res = await actions.updateProkerProgress(id, val);
     setSavingId(null);
-    if (res.success) {
-      // Tidak perlu alert kalau mau seamless, tapi kalau mau konfirmasi boleh ditambah
-      console.log("Progress updated");
-    } else {
-      alert("Gagal menyimpan progress.");
-    }
+    if (!res.success) alert("Gagal menyimpan progress.");
   };
 
   return (
@@ -144,7 +140,6 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 -mt-16 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* FORM SECTION */}
         <div className={activeTab === "progress" ? "lg:col-span-12" : "lg:col-span-5"}>
           <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-black/5">
             <div className="flex items-center gap-3 mb-8">
@@ -185,18 +180,24 @@ export default function AdminPage() {
                     <textarea className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-none font-medium text-[#174143] min-h-[100px]" value={description} onChange={(e) => setDescription(e.target.value)} required />
                   </div>
 
+                  {activeTab === "member" && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-4">Program Studi</label>
+                        <input className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-none font-medium text-[#174143]" value={major} onChange={(e) => setMajor(e.target.value)} required />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-4">Urutan Tampilan</label>
+                        <input type="number" className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-none font-medium text-[#174143]" value={orderIndex} onChange={(e) => setOrderIndex(parseInt(e.target.value) || 0)} required />
+                      </div>
+                    </div>
+                  )}
+
                   {activeTab === "kegiatan" && (
                      <div className="space-y-1">
                         <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-4">Progress Program (%)</label>
                         <input type="number" min="0" max="100" className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-none font-medium text-[#174143]" value={progress} onChange={(e) => setProgress(parseInt(e.target.value) || 0)} />
                      </div>
-                  )}
-
-                  {activeTab === "member" && (
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-4">Program Studi</label>
-                      <input className="w-full px-5 py-4 bg-gray-50 rounded-2xl border-none font-medium text-[#174143]" value={major} onChange={(e) => setMajor(e.target.value)} required />
-                    </div>
                   )}
 
                   <div className="p-6 border-2 border-dashed border-gray-100 rounded-[2rem] bg-gray-50/50 hover:bg-gray-50 transition-colors relative group text-center">
@@ -215,7 +216,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* LIST SECTION */}
         <div className={activeTab === "progress" ? "lg:col-span-12" : "lg:col-span-7"}>
           <div className={activeTab === "progress" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
             {data.length === 0 ? (
@@ -247,7 +247,6 @@ export default function AdminPage() {
                               }}
                            />
                         </div>
-                        {/* SEKARANG TOMBOL INI ACTIVE */}
                         <button 
                           disabled={savingId === item.id}
                           onClick={() => handleSaveProkerProgress(item.id, item.progress || 0)}
@@ -257,23 +256,22 @@ export default function AdminPage() {
                             : "bg-[#174143] text-white hover:brightness-125 shadow-lg shadow-[#174143]/20"
                           }`}
                         >
-                          {savingId === item.id ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <Save size={16} />
-                          )}
+                          {savingId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
                         </button>
                       </div>
-
                       <div className="h-1.5 w-full bg-gray-50 rounded-full overflow-hidden">
                          <div className="h-full bg-[#174143] transition-all duration-500" style={{ width: `${item.progress || 0}%` }} />
                       </div>
                     </div>
                   ) : (
-                    // Tampilan List Biasa
                     <>
-                      <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-100">
+                      <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-gray-100 relative">
                         <img src={item.imageUrl || item.image_url || "https://via.placeholder.com/150"} className="w-full h-full object-cover" alt="preview" />
+                        {activeTab === "member" && (
+                          <div className="absolute top-1 left-1 bg-[#174143] text-white text-[8px] font-bold px-1.5 py-0.5 rounded shadow-md">
+                            #{item.orderIndex}
+                          </div>
+                        )}
                       </div>
                       <div className="flex-grow min-w-0">
                         <h3 className="font-black text-[#174143] uppercase italic leading-tight truncate">{item.name || item.title}</h3>
@@ -286,6 +284,7 @@ export default function AdminPage() {
                           setDescription(item.role || item.description || item.caption || "");
                           setMajor(item.major || "");
                           setProgress(item.progress || 0);
+                          setOrderIndex(item.orderIndex || 0);
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }} className="p-3 bg-gray-50 text-[#174143] hover:bg-[#174143] hover:text-white rounded-xl transition-all"><Edit3 size={14} /></button>
                         <button onClick={async () => {
